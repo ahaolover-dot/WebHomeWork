@@ -73,7 +73,8 @@ body { background: var(--app-bg); color: var(--app-text); }
 .app-shell :where([data-pc-name^="sidebar"], .p-sidebar) { background: var(--app-surface) !important; color: var(--app-text); }
 .app-shell :where([data-pc-name="sidebar"] *) { border-color: var(--app-border); }
 /* Dialog 被 PrimeVue 传送到 body、位于 .app-shell 之外，所以这里不能加 .app-shell 前缀。 */
-:where(.p-dialog, .p-dialog-content, .p-dialog-header) { background: var(--app-surface) !important; color: var(--app-text) !important; border-color: var(--app-border) !important; }
+/* 只给根节点上色：header/content 是直角，若也铺背景会盖住根节点的圆角。 */
+:where(.p-dialog) { background: var(--app-surface) !important; color: var(--app-text) !important; border-color: var(--app-border) !important; }
 :where(.p-dialog-content input, .p-dialog-content textarea, .p-dialog-content select) { background: var(--app-bg) !important; color: var(--app-text) !important; border-color: var(--app-border) !important; }
 :where(.p-dialog-content input::placeholder, .p-dialog-content textarea::placeholder) { color: color-mix(in srgb, var(--app-text) 55%, transparent) !important; }
 :where(.post-form, .login-form) { color: var(--app-text); }
