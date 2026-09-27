@@ -1,11 +1,13 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 
 const key = import.meta.env.VITE_AMAP_KEY ?? ''
 const securityJsCode = import.meta.env.VITE_AMAP_SECURITY_CODE ?? ''
 const campus = [120.165741, 30.293231]
+const isDark = inject('isDark', ref(false))
+const mapStyle = () => isDark.value ? 'amap://styles/dark' : 'amap://styles/whitesmoke'
 // 示例坐标固定在校区附近，不随用户定位移动，避免把示例误认为真实附近商品。
 const items = [
   { id: 1, title: '九成新台灯', price: 25, category: '生活', place: '图书馆附近', position: [120.1672, 30.2941], x: 57, y: 33, description: '宿舍桌面的小伙伴，支持冷暖光调节。' },
@@ -55,7 +57,8 @@ function renderMarkers() {
     content.type = 'button'
     content.textContent = `¥${item.price} · ${item.title}`
     content.setAttribute('aria-label', `查看${item.title}，${item.price}元`)
-    content.style.cssText = `border:1px solid #111;border-radius:20px;padding:8px 12px;white-space:nowrap;cursor:pointer;font:13px system-ui;background:${item.id === selectedId.value ? '#111' : '#fff'};color:${item.id === selectedId.value ? '#fff' : '#111'}`
+    // 标记由高德插入地图容器，scoped 样式管不到；用全局 CSS 变量，切换主题时无需重建标记。
+    content.style.cssText = `border:1px solid var(--app-text);border-radius:20px;padding:8px 12px;white-space:nowrap;cursor:pointer;font:13px system-ui;background:${item.id === selectedId.value ? 'var(--app-text)' : 'var(--app-field)'};color:${item.id === selectedId.value ? 'var(--app-bg)' : 'var(--app-text)'}`
     content.addEventListener('click', () => selectItem(item))
     return new window.AMap.Marker({ position: item.position, content, anchor: 'bottom-center', title: item.title })
   })
@@ -66,6 +69,7 @@ watch(visibleItems, () => {
   renderMarkers()
 })
 watch(selectedId, renderMarkers)
+watch(isDark, () => map?.setMapStyle(mapStyle()))
 function showCampus() {
   if (ready.value) map.setZoomAndCenter(16, campus)
 }
@@ -121,7 +125,7 @@ onMounted(async () => {
     if (disposed) return
     await nextTick()
     if (disposed) return
-    map = new window.AMap.Map(mapEl.value, { mapStyle: 'amap://styles/whitesmoke', center: campus, zoom: 16, zooms: [3, 20] })
+    map = new window.AMap.Map(mapEl.value, { mapStyle: mapStyle(), center: campus, zoom: 16, zooms: [3, 20] })
     mapTimer = window.setTimeout(() => {
       if (!disposed && !ready.value) notice.value = '地图尚未加载完成，请检查网络与高德配置；当前为校区示意图。'
     }, 15000)
@@ -184,7 +188,7 @@ onBeforeUnmount(() => {
     <div class="map-stage">
       <div ref="mapEl" class="amap-box" aria-label="附近闲置地图"></div>
       <div v-if="!ready" class="mock-stage">
-        <svg viewBox="0 0 900 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g stroke="#dfdfdb" stroke-width="18" fill="none"><path d="M-20 180 Q400 260 920 210 M-20 430 Q520 380 920 440 M180 -20 Q140 460 200 660 M640 -20 Q700 420 660 660" /></g><path d="M-20 270 Q480 330 920 270" stroke="#d4deda" stroke-width="28" fill="none" /></svg>
+        <svg viewBox="0 0 900 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g stroke="var(--app-map-road)" stroke-width="18" fill="none"><path d="M-20 180 Q400 260 920 210 M-20 430 Q520 380 920 440 M180 -20 Q140 460 200 660 M640 -20 Q700 420 660 660" /></g><path d="M-20 270 Q480 330 920 270" stroke="var(--app-map-river)" stroke-width="28" fill="none" /></svg>
         <span class="campus-label">浙工大 · 朝晖校区</span>
         <button v-for="item in visibleItems" :key="item.id" class="mock-pin" :class="{ active: selectedId === item.id }" :style="{ left: item.x + '%', top: item.y + '%' }" @click="selectItem(item)">¥{{ item.price }} · {{ item.title }}</button>
       </div>
@@ -197,26 +201,26 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .map-page { display: flex; flex: 1; min-height: 0; min-width: 0; color: var(--app-text, #171717); background: var(--app-bg, #f5f1e8); font-family: 'Round', system-ui, sans-serif; }
-.map-panel { width: 320px; flex-shrink: 0; overflow: auto; padding: 28px 22px; border-right: 1px solid var(--app-border, #ddd); background: var(--app-surface, #fbf8f1); }
-.eyebrow { font-size: 10px; letter-spacing: 2px; color: #777; margin: 0 0 14px; }
+.map-panel { width: 320px; flex-shrink: 0; overflow: auto; padding: 28px 22px; border-right: 1px solid var(--app-border, var(--app-line)); background: var(--app-surface, #fbf8f1); }
+.eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--app-muted); margin: 0 0 14px; }
 h1 { font-family: 'Ding', system-ui, sans-serif; font-size: 30px; font-weight: normal; margin: 0; }
-.intro { font-size: 12px; color: #777; line-height: 1.8; margin: 12px 0 24px; }
-label { display: block; font-size: 11px; color: #666; margin: 12px 0 8px; }
-select { width: 100%; border: 1px solid #ddd; border-radius: 10px; background: white; padding: 9px; font: inherit; font-size: 12px; }
+.intro { font-size: 12px; color: var(--app-muted); line-height: 1.8; margin: 12px 0 24px; }
+label { display: block; font-size: 11px; color: var(--app-muted); margin: 12px 0 8px; }
+select { width: 100%; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-field); color: var(--app-text); padding: 9px; font: inherit; font-size: 12px; }
 .filters { display: flex; gap: 7px; margin: 14px 0; }
-.filters button { border: 1px solid #ddd; border-radius: 20px; padding: 6px 12px; background: transparent; font: inherit; font-size: 12px; cursor: pointer; }
-.filters button[aria-pressed=true] { background: #171717; color: white; border-color: #171717; }
-.list-heading { display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid #ddd; margin-top: 24px; padding: 20px 0 10px; }
-.list-heading span, .data-note { color: #888; font-size: 11px; }
-.item { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 16px 8px; text-align: left; border: 0; border-bottom: 1px solid #e5e5e5; background: transparent; cursor: pointer; font: inherit; }
-.item.active { background: #eee; border-radius: 10px; }
-.item-category { font-size: 10px; border: 1px solid #ddd; padding: 5px; writing-mode: vertical-rl; letter-spacing: 3px; }
-.item-copy { flex: 1; }.item-copy strong { font-size: 13px; font-weight: normal; }.item-copy small { display: block; margin-top: 7px; font-size: 10px; color: #777; }.item b { font-size: 16px; }
-.data-note, .empty { line-height: 1.8; margin-top: 20px; }.empty { font-size: 12px; color: #777; }
-.map-stage { flex: 1; min-width: 0; position: relative; overflow: hidden; }.amap-box, .mock-stage { position: absolute; inset: 0; }.mock-stage { background: #eeefea; }.mock-stage svg { width: 100%; height: 100%; }.campus-label { position: absolute; top: 45%; left: 35%; color: #92968e; font-size: 12px; }
-.mock-pin { position: absolute; transform: translate(-50%, -100%); border: 1px solid #111; border-radius: 20px; padding: 8px 12px; background: white; white-space: nowrap; font-size: 12px; cursor: pointer; }.mock-pin.active { background: #111; color: white; }
-.map-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 8px; }.map-status { position: absolute; left: 16px; top: 72px; right: 16px; pointer-events: none; }.map-status p { width: fit-content; max-width: 100%; padding: 5px 10px; margin: 4px 0; background: #fffffff0; border-radius: 6px; font-size: 10px; color: #666; }
-.detail-card { position: absolute; left: 22px; right: 65px; bottom: 55px; padding: 20px; background: white; border: 1px solid #ddd; border-radius: 16px; max-width: 370px; }.detail-card small { font-size: 11px; color: #777; }.detail-card h2 { font-size: 19px; margin: 10px 0; }.detail-card h2 span { margin-left: 14px; }.detail-card p { font-size: 12px; line-height: 1.8; }.close { position: absolute; right: 12px; top: 8px; background: none; border: 0; font-size: 23px; cursor: pointer; }
-button:focus-visible, select:focus-visible { outline: 2px solid #999; outline-offset: 3px; }
+.filters button { border: 1px solid var(--app-line); border-radius: 20px; padding: 6px 12px; background: transparent; font: inherit; font-size: 12px; cursor: pointer; }
+.filters button[aria-pressed=true] { background: var(--app-text); color: var(--app-bg); border-color: var(--app-text); }
+.list-heading { display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid var(--app-line); margin-top: 24px; padding: 20px 0 10px; }
+.list-heading span, .data-note { color: var(--app-faint); font-size: 11px; }
+.item { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 16px 8px; text-align: left; border: 0; border-bottom: 1px solid var(--app-line); background: transparent; cursor: pointer; font: inherit; }
+.item.active { background: var(--app-hover); border-radius: 10px; }
+.item-category { font-size: 10px; border: 1px solid var(--app-line); padding: 5px; writing-mode: vertical-rl; letter-spacing: 3px; }
+.item-copy { flex: 1; }.item-copy strong { font-size: 13px; font-weight: normal; }.item-copy small { display: block; margin-top: 7px; font-size: 10px; color: var(--app-muted); }.item b { font-size: 16px; }
+.data-note, .empty { line-height: 1.8; margin-top: 20px; }.empty { font-size: 12px; color: var(--app-muted); }
+.map-stage { flex: 1; min-width: 0; position: relative; overflow: hidden; }.amap-box, .mock-stage { position: absolute; inset: 0; }.mock-stage { background: var(--app-map-bg); }.mock-stage svg { width: 100%; height: 100%; }.campus-label { position: absolute; top: 45%; left: 35%; color: var(--app-map-label); font-size: 12px; }
+.mock-pin { position: absolute; transform: translate(-50%, -100%); border: 1px solid var(--app-text); border-radius: 20px; padding: 8px 12px; background: var(--app-field); color: var(--app-text); white-space: nowrap; font-size: 12px; cursor: pointer; }.mock-pin.active { background: var(--app-text); color: var(--app-bg); }
+.map-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 8px; }.map-status { position: absolute; left: 16px; top: 72px; right: 16px; pointer-events: none; }.map-status p { width: fit-content; max-width: 100%; padding: 5px 10px; margin: 4px 0; background: color-mix(in srgb, var(--app-field) 94%, transparent); border-radius: 6px; font-size: 10px; color: var(--app-muted); }
+.detail-card { position: absolute; left: 22px; right: 65px; bottom: 55px; padding: 20px; background: var(--app-field); border: 1px solid var(--app-line); border-radius: 16px; max-width: 370px; }.detail-card small { font-size: 11px; color: var(--app-muted); }.detail-card h2 { font-size: 19px; margin: 10px 0; }.detail-card h2 span { margin-left: 14px; }.detail-card p { font-size: 12px; line-height: 1.8; }.close { position: absolute; right: 12px; top: 8px; background: none; border: 0; font-size: 23px; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--app-faint); outline-offset: 3px; }
 @media(max-width: 800px) { .map-page { flex-direction: column-reverse; overflow: auto; }.map-stage { flex: 0 0 55vh; min-height: 340px; }.map-panel { width: 100%; overflow: visible; padding: 22px; border-right: 0; }.item-list { display: flex; flex-wrap: wrap; }.item { flex: 1 1 240px; }.map-actions { top: 12px; right: 12px; } }
 </style>

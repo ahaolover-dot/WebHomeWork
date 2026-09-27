@@ -104,6 +104,9 @@ function handleLeave() {
 .button-gett {
   width: 140px;
   height: 45px;
+  background: var(--app-text);
+  color: var(--app-bg);
+  border-color: var(--app-text);
 }
 
 .button-get {

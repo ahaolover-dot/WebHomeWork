@@ -72,8 +72,8 @@ function submit() {
   height: 54px;
   display: grid;
   place-items: center;
-  border: 1px solid #d8d8d8;
-  background: #fff;
+  border: 1px solid var(--app-line);
+  background: var(--app-field);
   border-radius: 18px;
   font-size: 30px;
 }
@@ -87,7 +87,7 @@ function submit() {
 }
 
 .agent-intro {
-  color: #777;
+  color: var(--app-muted);
   font-size: 14px;
   line-height: 1.8;
   text-align: center;
@@ -105,18 +105,18 @@ function submit() {
 
 .suggestion {
   text-align: left;
-  background: #fafafa;
-  border: 1px solid #ddd;
+  background: var(--app-field);
+  border: 1px solid var(--app-line);
   border-radius: 16px;
   padding: 18px 16px;
   cursor: pointer;
-  color: #111;
+  color: var(--app-text);
   font: inherit;
 }
 
 .suggestion:hover {
-  background: #fff;
-  border-color: #888;
+  background: var(--app-surface);
+  border-color: var(--app-faint);
   transform: translateY(-2px);
 }
 
@@ -133,7 +133,7 @@ function submit() {
 
 .suggestion small {
   display: block;
-  color: #777;
+  color: var(--app-muted);
   font-size: 11px;
   line-height: 1.7;
   margin-top: 8px;
@@ -147,19 +147,19 @@ function submit() {
 
 .compose {
   padding: 14px;
-  border: 1px solid #d8d8d8;
-  background: #fff;
+  border: 1px solid var(--app-line);
+  background: var(--app-field);
   border-radius: 18px;
 }
 
 .compose:focus-within {
-  border-color: #aaa;
+  border-color: var(--app-faint);
 }
 
 .compose label {
   display: block;
   font-size: 11px;
-  color: #777;
+  color: var(--app-muted);
   margin-bottom: 8px;
 }
 
@@ -171,7 +171,7 @@ function submit() {
   max-height: 140px;
   border: 0;
   background: transparent;
-  color: #111;
+  color: var(--app-text);
   font: inherit;
   font-size: 14px;
   line-height: 1.7;
@@ -186,14 +186,14 @@ function submit() {
 }
 
 .compose-bottom span {
-  color: #999;
+  color: var(--app-faint);
   font-size: 11px;
 }
 
 .send-preview {
   border: 0;
-  background: #111;
-  color: #fff;
+  background: var(--app-text);
+  color: var(--app-bg);
   border-radius: 30px;
   padding: 9px 18px;
   font: inherit;
@@ -205,14 +205,14 @@ function submit() {
   margin: 10px 0 0;
   min-height: 18px;
   font-size: 11px;
-  color: #777;
+  color: var(--app-muted);
   text-align: center;
 }
 
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #777;
+  outline: 2px solid var(--app-muted);
   outline-offset: 3px;
 }
 
@@ -226,8 +226,8 @@ textarea:focus-visible {
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  background: #f2f2f2;
-  color: #111;
+  background: var(--app-bg);
+  color: var(--app-text);
   font-family: 'Round', system-ui, sans-serif;
 }
 
